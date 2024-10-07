@@ -1,0 +1,29 @@
+# Use uma imagem Node.js como base
+FROM node:16
+
+# Define o diretório de trabalho dentro do contêiner
+WORKDIR /app
+
+# Copia os arquivos package.json e package-lock.json da pasta client
+COPY ./client/package*.json ./
+
+# Instala as dependências
+RUN npm install
+
+# Copia o restante dos arquivos do frontend para o diretório de trabalho
+COPY ./client ./
+
+# Compila o aplicativo para produção
+RUN npm run build
+
+# Usa uma imagem do Nginx para servir o aplicativo
+FROM nginx:alpine
+
+# Copia os arquivos estáticos construídos para a pasta do Nginx
+COPY --from=0 /app/build /usr/share/nginx/html
+
+# Expõe a porta que o servidor Nginx vai usar
+EXPOSE 80
+
+# Comando para iniciar o Nginx
+CMD ["nginx", "-g", "daemon off;"]

@@ -1,0 +1,53 @@
+version: '3'
+
+services:
+  mongodb:
+    image: mongo
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./data:/data/db
+      - ./backup:/backup
+    networks:
+      - app-network
+
+  backend:
+    image: express-backend
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: backend
+    ports:
+      - "4000:4000"
+    networks:
+      - app-network
+    depends_on:
+      - mongodb
+
+  frontend:
+    image: react-frontend
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: frontend
+    networks:
+      - app-network
+
+  nginx:
+    image: nginx
+    build:
+      context: .
+      dockerfile: Dockerfile.nginx
+    container_name: nginx
+    ports:
+      - "80:80"
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
